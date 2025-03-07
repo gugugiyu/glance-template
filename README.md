@@ -12,13 +12,13 @@ Just pull this repo (or download just the `glance.yml` file separately), place t
 
 It's assumed that you've already set up Vikunja and Actual, here're some env to be set before running the with this configuration:
 
-| Name                       | Value  | Description                                                                                              |   |   |
-|----------------------------|--------|----------------------------------------------------------------------------------------------------------|---|---|
-| VIKUNJA_HOST               | Number | The host in which you run Vikunja                                                                        |   |   |
-| VIKUNJA_PORT               | Number | The port in which you run Vikunja                                                                        |   |   |
-| VIKUNJA_GLANCE_API_TOKEN   | String | The API token of Vikunja that has the permission to read tasks                                           |   |   |
-| VIKUNJA_IDEAS_PROJECT_ID   | Number | The `ideas` project id, I have this env set up as I want to track contents for my future writing topics  |   |   |
-| VIKUNJA_WORKOUT_PROJECT_ID | Number | THe `workout` project id, tracking today's workout routine                                               |   |   |
+| Name                       | Value  | Description                                                                                              |
+|----------------------------|--------|----------------------------------------------------------------------------------------------------------|
+| VIKUNJA_HOST               | Number | The host in which you run Vikunja                                                                        |
+| VIKUNJA_PORT               | Number | The port in which you run Vikunja                                                                        |
+| VIKUNJA_GLANCE_API_TOKEN   | String | The API token of Vikunja that has the permission to read tasks                                           |
+| VIKUNJA_IDEAS_PROJECT_ID   | Number | The `ideas` project id, I have this env set up as I want to track contents for my future writing topics  |
+| VIKUNJA_WORKOUT_PROJECT_ID | Number | THe `workout` project id, tracking today's workout routine                                               |
 
 
 ## Feature sections include

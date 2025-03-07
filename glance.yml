@@ -1,0 +1,336 @@
+branding:
+  hide-footer: true
+  logo-text: MagicExists
+server:
+  port: 8088
+theme:
+  background-color: 166 41 20
+  contrast-multiplier: 1.2
+  primary-color: 97 13 80
+
+pages:
+  - name: Home
+    width: slim
+    center-vertically: true
+    columns:
+      - size: small
+        widgets:
+          - type: custom-api
+            title: Random Fact
+            cache: 1s
+            url: https://uselessfacts.jsph.pl/api/v2/facts/random
+            template: |
+              <blockquote cite="{{ .JSON.String "source_url" }}" class="size-h4 color-paragraph" style="word-wrap: break-word;">{{ .JSON.String "text" }}</blockquote>
+          - type: calendar
+          - type: clock
+            hour-format: 24h
+            timezones:
+            - timezone: Europe/Paris
+              label: Paris
+            - timezone: America/New_York
+              label: New York
+            - timezone: Asia/Tokyo
+              label: Tokyo
+
+          - type: weather
+            location: Ho Chi Minh City, Vietnam
+
+      - size: full
+        widgets:
+          - type: html
+            source: |
+              <div style="text-align: center; margin-bottom: var(--widget-gap)">
+                <h1 style="font-size: 5rem;">Hello world, <span class="color-primary">Magic</span>!</h1>
+                <p style="opacity: 0.8;">"Yesterday is history. Tomorrow is a mystery, but today is a gift. That’s why it’s called the present."</p>
+              </div>
+          - type: custom-api
+            title: What will we train today?
+            cache: 5s
+            url: http://${VIKUNJA_HOST}:${VIKUNJA_PORT}/api/v1/tasks/all?sort_by=due_date&order_by=asc&per_page=2&filter=project=${VIKUNJA_WORKOUT_PROJECT_ID}%26%26due_date>=now/d%26%26percent_done<100
+            headers:
+              Authorization: Bearer ${VIKUNJA_GLANCE_API_TOKEN}
+            template: |
+              <h4 style="font-weight: normal">It's <b>{{ .JSON.String "0.title"}}!</b></h4>
+            
+          - type: group
+            widgets:
+              - type: custom-api
+                title: Tasks
+                cache: 5s
+                url: http://${VIKUNJA_HOST}:${VIKUNJA_PORT}/api/v1/tasks/all?sort_by=due_date&order_by=asc&per_page=10&filter=((due_date>now-1d%26%26due_date<now%2B10d%26%26project!=${VIKUNJA_WORKOUT_PROJECT_ID})||(due_date>now%26%26priority>3))%26%26done=false
+                headers:
+                  Authorization: Bearer ${VIKUNJA_GLANCE_API_TOKEN}
+                template: |
+                  <div>
+                  <p>The filter was set to be tasks that have due date from yesterday to one week ahead, or having the priority of over 3 (High) <a class="bookmarks-link color-highlight size-h4" href="http://${VIKUNJA_HOST}:${VIKUNJA_PORT}/">Visit here</a></p>
+                  {{ if eq .Response.StatusCode 200 }}
+                    {{if eq (len (.JSON.Array "")) 0}}
+                      <h5>Cool, no task now, you can chill</h5>
+                    {{else}}
+                      <table style="border-spacing: 2rem;">
+                        <thead>
+                          <tr style="font-size: 1.5rem; text-align: left;">
+                            <th>Priority</th>
+                            <th>Task</th>
+                            <th>pct. %</th>
+                            <th>Tags</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {{range .JSON.Array ""}}
+                            <tr>
+                              <td>{{if eq (.Int "priority") 5}}
+                                  <p style="color: purple">Critical</p>
+                                  {{else if eq (.Int "priority") 4}}
+                                  <p style="color: Tomato">High</p>
+                                  {{else if eq (.Int "priority") 3}}
+                                  <p style="color: orange">Medium</p>
+                                  {{else if eq (.Int "priority") 2}}
+                                  <p style="color: green">Low</p>
+                                  {{else if eq (.Int "priority") 1}}
+                                  <p style="color: gray">Maybe?</p>                          
+                                  {{end}}
+                                </td>
+                                <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i>{{ .String "title"}}</i></td>
+                                <td><meter min="0" max="1" value="{{.Float "percent_done"}}" low="30" high="50" optimum="80" style="min-width: 3vw"></meter></td>
+                                <td style="min-width: 10vw">
+                                  {{if eq (len (.Array "labels")) 0}}
+                                    <p color="lightgray">No tag</p>
+                                  {{else}}
+                                    {{range .Array "labels"}} 
+                                        <span style="color: #{{.String "hex_color"}}; border: 1px solid #{{.String "hex_color"}}; padding: 0.5rem 0.5rem;">{{.String "title"}}</span> 
+                                    {{end}}
+                                  {{end}}
+                                </td>
+                              </tr>
+                          {{end}}
+                        </tbody>
+                      </table>
+                    {{end}}
+                  {{ else }}
+                    <p style="color: red; font-weight: bold;">Failed to fetch data</p>
+                  {{ end }}
+                  </div>
+              - type: custom-api
+                title: Writing / Dairy ideas
+                cache: 5s
+                url: http://${VIKUNJA_HOST}:${VIKUNJA_PORT}/api/v1/tasks/all?sort_by=due_date&order_by=asc&per_page=12&filter=project=${VIKUNJA_IDEAS_PROJECT_ID}%26%26done=false
+                headers:
+                  Authorization: Bearer ${VIKUNJA_GLANCE_API_TOKEN}
+                template: |
+                  <div>
+                    <ul class="list list-gap-10 collapsible-container" data-collapse-after="8">
+                      {{ range .JSON.Array "" }}
+                        <li>
+                          <p class="size-h4 color-highlight block text-truncate" >{{ .String "title" }}</p>
+                          <p class="size-h5 text-truncate">{{ .String "description" }}</p>
+                        </li>
+                      {{ end }}
+                    </ul>
+                  </div>
+
+          - type: bookmarks
+            groups:
+              - title: Entertainment
+                links:
+                  - title: YouTube
+                    url: https://www.youtube.com/
+                    icon: si:youtube
+                  - title: YT (No ads version)
+                    url: https://vutube.xyz/
+                    icon: si:youtube
+                  - title: Monkeytype
+                    url: https://monkeytype.com/
+                    icon: si:monkeytype
+              - title: Social
+                links:
+                  - title: Discord
+                    url: discord://
+                    icon: si:discord
+                  - title: Messenger
+                    url: https://www.messenger.com/
+                    icon: si:messenger
+                  - title: Spiderum
+                    url: https://spiderum.com/?sort=hot&page_idx=1
+                    icon: si:bookstack
+              - title: Education
+                links:
+                  - title: Funix
+                    url: https://courses.funix.edu.vn/dashboard
+                    icon: si:bookstack
+                  - title: Obsidian
+                    url: obsidian://
+                    icon: si:obsidian
+                  - title: Github
+                    url: https://github.com/
+                    icon: si:github
+          - type: monitor
+            cache: 10s
+            title: Services
+            sites:
+              - title: Blank 1
+                url: https://example.com
+                icon: si:jellyfin
+              - title: Vikunja
+                url: http://localhost:3456/
+                icon: si:checkmarx
+              - title: Grafana (dashboard) # only for Linux ISOs, of course
+                url: http://localhost:3000/
+                icon: si:grafana
+              - title: Ollama
+                url: http://127.0.0.1:11434/
+                icon: si:ollama
+              - title: Blank 2
+                url: https://example.com
+                icon: si:amazonec2
+              - title: Actual budget tracker
+                url: http://localhost:5006/
+                icon: si:dogecoin
+          - type: server-stats
+            servers:
+              - type: local
+                name: Services
+  - name: Dev
+    columns:
+      - size: full
+        widgets:
+          - type: hacker-news
+            title: Techs
+
+          - type: videos
+            style: grid-cards
+            collapse-after-rows: 3
+            channels:
+              - UCNzszbnvQeFzObW0ghk0Ckw # Dave Garage
+              - UCwd5VFu4KoJNjkWJZMFJGHQ # Jacob Sorber
+              - UCsBjURrPoezykLs9EqgamOA # Fireship
+              - UCV0qA-eDDICsRR9rPcnG7tw # Joma tech
+              - UCrqM0Ym_NbK1fqeQG2VIohg # Tsoding
+              - UCH2gAK9r_7EbvyVt0z5VibQ # Grokking
+              - UCdp4_l1vPmpN-gDbUwhaRUQ # Branch Education
+              - UCky92hx0lZxVBi2BJ6Zm2Hg # Tips Javascript (Anonystick)
+
+      - size: small
+        widgets:
+          - type: rss 
+            limit: 10
+            collapse-after: 3
+            cache: 3h
+            feeds:
+              - url: https://ciechanow.ski/atom.xml
+              - url: https://www.joshwcomeau.com/rss.xml
+                title: Josh Comeau
+              - url: https://samwho.dev/rss.xml
+              - url: https://awesomekling.github.io/feed.xml
+              - url: https://ishadeed.com/feed.xml
+                title: Ahmad Shadeed
+          - type: repository
+            repository: deepseek-ai/Janus
+            pull-requests-limit: 5
+            issues-limit: 3
+            commits-limit: 3
+
+          - type: repository
+            repository: glanceapp/glance
+            pull-requests-limit: 5
+            issues-limit: 3
+            commits-limit: 3
+  - name: Entertainment
+    columns:
+      - size: small
+        widgets:
+          - type: search
+            title: Steam game search
+            search-engine: https://store.steampowered.com/search/?term={QUERY}
+            new-tab: true
+            autofocus: true
+
+          - type: custom-api
+            title: Steam Specials
+            cache: 12h
+            url: https://store.steampowered.com/api/featuredcategories?cc=us
+            template: |
+              <ul class="list list-gap-10 collapsible-container" data-collapse-after="8">
+              {{ range .JSON.Array "specials.items" }}
+                <li>
+                  <a class="size-h4 color-highlight block text-truncate" href="https://store.steampowered.com/app/{{ .Int "id" }}/">{{ .String "name" }}</a>
+                  <ul class="list-horizontal-text">
+                    <li>{{ div (.Int "final_price" | toFloat) 100 | printf "$%.2f" }}</li>
+                    {{ $discount := .Int "discount_percent" }}
+                    <li{{ if ge $discount 40 }} class="color-positive"{{ end }}>{{ $discount }}% off</li>
+                  </ul>
+                </li>
+              {{ end }}
+              </ul>
+
+      - size: full
+        widgets:
+          - type: videos
+            style: grid-cards
+            collapse-after-rows: 4
+            channels:
+              - UClbllR4Tx-lhYJyrpu1sA4A # Aztecross
+              - UCYsoTC13yJNQRIsntEygEGQ # CraftyMasterman
+              - UCHDxYLv8iovIbhrfl16CNyg # GameLinked
+              - UCfVDk0Nn-7lm6E8pAM9Ti7g # Pavelski
+              - UCz28y3fThmxHaIh7Zl-i6KA # Mattbatwing
+              - UC9PBzalIcEQCsiIkq36PyUA # Digital Foundry
+              - UCrbA5a8z3E0Dm6hIiJRuL_w # Kenedian
+              - UCoKYIjbaEX4mnR8IWwtuBwA # Cobra code'
+              - UCTfakb70KgGZfSne2cTouXg # ItsTizzle
+              - UCweDKPSF65wRw5VHFUJYiow # Curious Archive
+              - UCya2uierY3mRpGtc4kfzRzw # Gamematic
+              - UCHnyfMqiRRG1u-2MsSQLbXA # Veritasium
+              - UCStacuNXCCDBwn--dWCilNA # Swirft
+              - UCORwVnph7TK6rmyKozkV8_g # Vietcera
+              - UCRsd_L7wBGdHLhfacuy3QVw # Spiderum
+              - UCY3TJECrA90t9YTrxhdjcVw # Meet arnold
+              - UCzDArZ8_pgmBBBOiiUu9OmA # Rest Assured
+              - UCbKWv2x9t6u8yZoB3KcPtnw # Alan Becker
+              - UCMlqYSFcNTrxDQO_T9GCsjg # Fallout Play
+              - UC-JxNT_QMGUCXClXIdJgZLQ # Toad Smoothie
+
+      - size: small
+        widgets:
+          - type: bookmarks
+            groups:
+              - title: Valorant
+                color: 10 70 50
+                links:
+                  - title: Line up tool
+                    url: https://strats.gg/valorant/lineups
+                  - title: Latest Patchnote
+                    url: https://playvalorant.com/en-us/news/tags/patch-notes/
+                  - title: Game updates
+                    url: https://playvalorant.com/en-us/news/game-updates/
+              - title: Destiny 2
+                color: 0 0 92
+                links:
+                  - title: DIM
+                    url: https://app.destinyitemmanager.com/4611686018538468083/d2/inventory
+                  - title: Armor Picker
+                    url: https://d2armorpicker.com/#/
+                  - title: Where TF is Xur
+                    url: https://whereisxur.com/
+                  - title: Today in Destiny 
+                    url: https://www.todayindestiny.com/
+              - title: Other games
+                links:
+                  - title: Roblox
+                  - url: https://www.roblox.com/home
+  - name: KATs
+    width: slim
+    center-vertically: true
+    columns:
+      - size: full
+        widgets: 
+          - type: custom-api
+            title: Cat Hall of Fame (Kat as a service)
+            cache: 5s
+            url: https://cataas.com/api/cats?limit=9
+            template: |
+              <div style="display: grid; grid-template-columns: auto auto auto; padding: 30px 0; gap: 30px;">
+                {{range .JSON.Array ""}}
+                  <div style="display: flex; justify-content:center;"><img src="https://cataas.com/cat?width=300&height=300&{{.String "id"}}" width="300" height="300" style="object-fit: cover; border-radius: 10px;"></div>
+                {{end}}
+              </div>
